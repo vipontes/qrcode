@@ -3,4 +3,5 @@
     <string name="qrcode_hint">Texto ou URL do QRcode</string>
     <string name="create">Criar QRcode</string>
     <string name="share">Compartilhar</string>
+    <string name="scan_again">Ler novamente</string>
 </resources>

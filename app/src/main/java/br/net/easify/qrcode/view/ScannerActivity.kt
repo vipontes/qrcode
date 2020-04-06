@@ -2,6 +2,7 @@ package br.net.easify.qrcode.view
 
 import android.Manifest
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import br.net.easify.qrcode.R
@@ -22,6 +23,7 @@ class ScannerActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
 
     override fun handleResult(rawResult: Result?) {
         processRawResult(rawResult!!.text)
+        scanAgain.visibility = View.VISIBLE
     }
 
     private fun processRawResult(text: String?) {
@@ -107,5 +109,10 @@ class ScannerActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
 
                 }
             }).check()
+
+        scanAgain!!.setOnClickListener {
+            zxScan!!.resumeCameraPreview(this@ScannerActivity)
+            scanAgain.visibility = View.GONE
+        }
     }
 }
