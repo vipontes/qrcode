@@ -1,4 +1,4 @@
-package br.net.easify.qrcode
+package br.net.easify.qrcode.view
 
 import android.Manifest
 import android.content.Context
@@ -9,10 +9,13 @@ import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import br.net.easify.qrcode.R
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
@@ -98,6 +101,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.main_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.scanMenuItem -> {
+                var intent = Intent(this, ScannerActivity::class.java)
+                startActivity(intent)
+            }
+        }
+        return true
+    }
+
     // Share image
     private fun shareImage(imageToShare: Bitmap) {
         val share = Intent(Intent.ACTION_SEND)
@@ -152,7 +171,8 @@ class MainActivity : AppCompatActivity() {
             bitMatrix = MultiFormatWriter().encode(
                 Value,
                 BarcodeFormat.QR_CODE,
-                qrCodeWidth, qrCodeWidth, null
+                qrCodeWidth,
+                qrCodeWidth, null
             )
 
         } catch (Illegalargumentexception: IllegalArgumentException) {
@@ -179,7 +199,8 @@ class MainActivity : AppCompatActivity() {
         }
         val bitmap = Bitmap.createBitmap(bitMatrixWidth, bitMatrixHeight, Bitmap.Config.ARGB_4444)
 
-        bitmap.setPixels(pixels, 0, qrCodeWidth, 0, 0, bitMatrixWidth, bitMatrixHeight)
+        bitmap.setPixels(pixels, 0,
+            qrCodeWidth, 0, 0, bitMatrixWidth, bitMatrixHeight)
         return bitmap
     }
 
