@@ -1,6 +1,8 @@
 package br.net.easify.qrcode.view
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -28,6 +30,7 @@ class ScannerActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
 
     private fun processRawResult(text: String?) {
         if (text!!.startsWith("BEGIN:")) {
+            // TODO: Testar a versão do vcard
             val tokens = text?.split("\n".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()
             val qrVCardModel = QRVCardModel()
             for (i in tokens.indices) {
@@ -35,26 +38,45 @@ class ScannerActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
                     qrVCardModel.type = tokens[i].substring("BEGIN:".length)
                 } else if (tokens[i].startsWith("N:")) {
                     qrVCardModel.name = tokens[i].substring("N:".length)
+                } else if (tokens[i].startsWith("FN:")) {
+                    qrVCardModel.fullName = tokens[i].substring("FN:".length)
+                } else if (tokens[i].startsWith("TITLE:")) {
+                    qrVCardModel.title = tokens[i].substring("TITLE:".length)
                 } else if (tokens[i].startsWith("ORG:")) {
                     qrVCardModel.org = tokens[i].substring("ORG:".length)
                 } else if (tokens[i].startsWith("TEL:")) {
                     qrVCardModel.tel = tokens[i].substring("TEL:".length)
+                } else if (tokens[i].startsWith("TEL;CELL:")) {
+                    qrVCardModel.cell = tokens[i].substring("TEL;CELL:".length)
+                } else if (tokens[i].startsWith("TEL;WORK;VOICE:")) {
+                    qrVCardModel.tel = tokens[i].substring("TEL;WORK;VOICE:".length)
+                } else if (tokens[i].startsWith("TEL;FAX:")) {
+                    qrVCardModel.fax = tokens[i].substring("TEL;FAX:".length)
                 } else if (tokens[i].startsWith("EMAIL:")) {
                     qrVCardModel.email = tokens[i].substring("EMAIL:".length)
+                }  else if (tokens[i].startsWith("EMAIL;WORK;INTERNET:")) {
+                    qrVCardModel.email = tokens[i].substring("EMAIL;WORK;INTERNET:".length)
                 } else if (tokens[i].startsWith("NOTE:")) {
                     qrVCardModel.note = tokens[i].substring("NOTE:".length)
+                } else if (tokens[i].startsWith("URL:")) {
+                    qrVCardModel.url = tokens[i].substring("URL:".length)
                 } else if (tokens[i].startsWith("SUMMARY:")) {
                     qrVCardModel.summary = tokens[i].substring("SUMMARY:".length)
                 } else if (tokens[i].startsWith("DTSTART:")) {
                     qrVCardModel.dtstart = tokens[i].substring("DTSTART:".length)
                 } else if (tokens[i].startsWith("DTEND:")) {
                     qrVCardModel.dtend = tokens[i].substring("DTEND:".length)
+                } else if (tokens[i].startsWith("ADR:")) {
+                    qrVCardModel.address = tokens[i].substring("ADR:".length)
                 }
             }
+
             if ( qrVCardModel.type.equals("VCARD"))
                 txt_result.text = qrVCardModel.name
             else
                 txt_result.text = qrVCardModel.type
+
+            showVCardDialog(qrVCardModel)
 
         } else if (text!!.startsWith("http://") ||
             text!!.startsWith("https://") ||
@@ -63,6 +85,7 @@ class ScannerActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
             var qrurlModel = QRURLModel()
             qrurlModel.url = text!!
             txt_result!!.text = qrurlModel.url
+            startUrl(qrurlModel.url!!)
         } else if (text!!.startsWith("geo:")) {
             val qrGeoModel = QRGeoModel()
             val delims = "[ , ?q= ]+"
@@ -77,9 +100,22 @@ class ScannerActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
             qrGeoModel.geo_place = tokens[2]
 
             txt_result!!.text = qrGeoModel.lat + "/" + qrGeoModel.lng
+
+            startUrl("https://www.google.com/maps?q=${qrGeoModel.lat},${qrGeoModel.lng}")
         } else {
             txt_result!!.text = text!!
         }
+    }
+
+    private fun startUrl(url: String) {
+        val openURL = Intent(android.content.Intent.ACTION_VIEW)
+        openURL.data = Uri.parse(url)
+        startActivity(openURL)
+    }
+
+    fun showVCardDialog(card: QRVCardModel) {
+        var dialog = VCardDialog(card)
+        dialog.show(supportFragmentManager,"fragment_vcard")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
