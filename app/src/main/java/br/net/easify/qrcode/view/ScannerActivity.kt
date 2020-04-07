@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import br.net.easify.qrcode.R
 import br.net.easify.qrcode.model.QRGeoModel
 import br.net.easify.qrcode.model.QRURLModel
-import br.net.easify.qrcode.model.QRVCardModel
 import com.google.zxing.Result
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
@@ -18,8 +17,11 @@ import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
+import ezvcard.Ezvcard
+import ezvcard.VCard
 import kotlinx.android.synthetic.main.activity_scanner.*
 import me.dm7.barcodescanner.zxing.ZXingScannerView
+
 
 class ScannerActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
 
@@ -30,54 +32,9 @@ class ScannerActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
 
     private fun processRawResult(text: String?) {
         if (text!!.startsWith("BEGIN:")) {
-            // TODO: Testar a versão do vcard
-            val tokens = text?.split("\n".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()
-            val qrVCardModel = QRVCardModel()
-            for (i in tokens.indices) {
-                if (tokens[i].startsWith("BEGIN:")) {
-                    qrVCardModel.type = tokens[i].substring("BEGIN:".length)
-                } else if (tokens[i].startsWith("N:")) {
-                    qrVCardModel.name = tokens[i].substring("N:".length)
-                } else if (tokens[i].startsWith("FN:")) {
-                    qrVCardModel.fullName = tokens[i].substring("FN:".length)
-                } else if (tokens[i].startsWith("TITLE:")) {
-                    qrVCardModel.title = tokens[i].substring("TITLE:".length)
-                } else if (tokens[i].startsWith("ORG:")) {
-                    qrVCardModel.org = tokens[i].substring("ORG:".length)
-                } else if (tokens[i].startsWith("TEL:")) {
-                    qrVCardModel.tel = tokens[i].substring("TEL:".length)
-                } else if (tokens[i].startsWith("TEL;CELL:")) {
-                    qrVCardModel.cell = tokens[i].substring("TEL;CELL:".length)
-                } else if (tokens[i].startsWith("TEL;WORK;VOICE:")) {
-                    qrVCardModel.tel = tokens[i].substring("TEL;WORK;VOICE:".length)
-                } else if (tokens[i].startsWith("TEL;FAX:")) {
-                    qrVCardModel.fax = tokens[i].substring("TEL;FAX:".length)
-                } else if (tokens[i].startsWith("EMAIL:")) {
-                    qrVCardModel.email = tokens[i].substring("EMAIL:".length)
-                }  else if (tokens[i].startsWith("EMAIL;WORK;INTERNET:")) {
-                    qrVCardModel.email = tokens[i].substring("EMAIL;WORK;INTERNET:".length)
-                } else if (tokens[i].startsWith("NOTE:")) {
-                    qrVCardModel.note = tokens[i].substring("NOTE:".length)
-                } else if (tokens[i].startsWith("URL:")) {
-                    qrVCardModel.url = tokens[i].substring("URL:".length)
-                } else if (tokens[i].startsWith("SUMMARY:")) {
-                    qrVCardModel.summary = tokens[i].substring("SUMMARY:".length)
-                } else if (tokens[i].startsWith("DTSTART:")) {
-                    qrVCardModel.dtstart = tokens[i].substring("DTSTART:".length)
-                } else if (tokens[i].startsWith("DTEND:")) {
-                    qrVCardModel.dtend = tokens[i].substring("DTEND:".length)
-                } else if (tokens[i].startsWith("ADR:")) {
-                    qrVCardModel.address = tokens[i].substring("ADR:".length)
-                }
-            }
-
-            if ( qrVCardModel.type.equals("VCARD"))
-                txt_result.text = qrVCardModel.name
-            else
-                txt_result.text = qrVCardModel.type
-
-            showVCardDialog(qrVCardModel)
-
+            val vcard = Ezvcard.parse(text).first()
+            txt_result.text = vcard.formattedName.value
+            showVCardDialog(vcard)
         } else if (text!!.startsWith("http://") ||
             text!!.startsWith("https://") ||
             text!!.startsWith("www.")
@@ -113,7 +70,7 @@ class ScannerActivity : AppCompatActivity(), ZXingScannerView.ResultHandler {
         startActivity(openURL)
     }
 
-    fun showVCardDialog(card: QRVCardModel) {
+    fun showVCardDialog(card: VCard) {
         var dialog = VCardDialog(card)
         dialog.show(supportFragmentManager,"fragment_vcard")
     }

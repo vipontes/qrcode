@@ -4,16 +4,16 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import br.net.easify.qrcode.R
-import br.net.easify.qrcode.model.QRVCardModel
+import ezvcard.VCard
+import ezvcard.parameter.TelephoneType
 
-class VCardDialog(private var vcardData: QRVCardModel) : DialogFragment() {
+class VCardDialog(private var vcardData: VCard) : DialogFragment() {
 
     private lateinit var closeButton: ImageView
     private lateinit var nameText: TextView
@@ -48,19 +48,26 @@ class VCardDialog(private var vcardData: QRVCardModel) : DialogFragment() {
             dismiss()
         }
 
-        if ( vcardData.fullName.isNullOrEmpty() ) {
-            nameText.text = vcardData.name
-        } else {
-            nameText.text = vcardData.fullName
+        nameText.text = vcardData.formattedName.value
+        orgText.text = vcardData.organization.values.first()
+        if (vcardData.titles.size > 0) titleText.text = vcardData.titles.first().value
+        if (vcardData.emails.size > 0) emailText.text = vcardData.emails.first().value
+        if (vcardData.telephoneNumbers.size > 0) {
+            val phoneList = vcardData.telephoneNumbers
+            for (item in phoneList) {
+                val types = item.types
+                if (types.contains(TelephoneType.CELL) || types.contains(TelephoneType.TEXTPHONE)) {
+                    cellText.text = item.text
+                }
+                if (types.contains(TelephoneType.HOME) || types.contains(TelephoneType.WORK)) {
+                    telText.text = item.text
+                }
+            }
         }
-        titleText.text = vcardData.title
-        emailText.text = vcardData.email
-        telText.text = vcardData.tel
-        cellText.text = vcardData.cell
-        urlText.text = vcardData.url
-        addressText.text = vcardData.address
-        orgText.text = vcardData.org
-        summaryText.text = vcardData.summary
+        urlText.text = vcardData.urls.first().value
+        if (vcardData.addresses.size > 0) addressText.text =
+            vcardData.addresses.first().streetAddressFull
+        if (vcardData.notes.size > 0) summaryText.text = vcardData.notes.first().value
 
         return alert.create()
     }

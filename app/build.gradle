@@ -34,6 +34,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
     implementation 'me.dm7.barcodescanner:zxing:1.9.13'
-
+    implementation 'com.googlecode.ez-vcard:ez-vcard:0.10.6'
     implementation "com.karumi:dexter:6.0.2"
 }
